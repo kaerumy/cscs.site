@@ -1,0 +1,23 @@
+server {
+    listen 80;
+    server_name ${domain};
+
+    client_max_body_size 0;
+
+    # force caching of diazo themes
+    location ^~ /++theme++ {
+        expires 1d;
+        gzip on;
+        gzip_types text/css application/x-javascript text/javascript;
+        proxy_pass http://${zope-address}/VirtualHostBase/http/${domain}:80/${siteid}/VirtualHostRoot/++theme++;
+    }
+
+    # pass everything else to varnish that passes to haproxy that load balances
+    # over 4 Zope clients
+    location / {
+        proxy_pass http://${zope-address}/VirtualHostBase/http/${domain}:80/${siteid}/VirtualHostRoot/;
+    }
+
+    access_log ${logfile};
+}
+
